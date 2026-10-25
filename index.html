@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow — Full-Stack Task Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AUTH SCREEN
+     ═══════════════════════════════════════════════════════════ -->
+<div id="auth-screen" class="auth-wrapper">
+    <div class="auth-card">
+        <h1>TaskFlow</h1>
+        <p>Organize your work, one task at a time.</p>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" data-tab="login">Log In</button>
+            <button class="auth-tab" data-tab="register">Sign Up</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form">
+            <div class="form-group">
+                <label for="login-email">Email</label>
+                <input type="email" id="login-email" class="form-control" placeholder="alice@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" class="form-control" placeholder="Your password" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
+                Log In
+            </button>
+            <p style="margin-top:1rem;text-align:center;font-size:.82rem;color:var(--text-muted);">
+                Demo: <strong>alice@example.com</strong> / <strong>password123</strong>
+            </p>
+        </form>
+
+        <!-- Register Form -->
+        <form id="register-form" class="hidden">
+            <div class="form-group">
+                <label for="reg-username">Username</label>
+                <input type="text" id="reg-username" class="form-control" placeholder="Choose a username" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-email">Email</label>
+                <input type="email" id="reg-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="reg-password">Password</label>
+                <input type="password" id="reg-password" class="form-control" placeholder="At least 6 characters" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:.5rem;">
+                Create Account
+            </button>
+        </form>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     APP SCREEN
+     ═══════════════════════════════════════════════════════════ -->
+<div id="app-screen" class="hidden">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 11l3 3L22 4"/>
+                <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+            </svg>
+            TaskFlow
+        </div>
+        <div class="navbar-user">
+            <span id="user-name" style="font-weight:500;font-size:.9rem;"></span>
+            <div id="user-avatar" class="avatar"></div>
+            <button class="btn btn-ghost btn-sm" onclick="handleLogout()">Log Out</button>
+        </div>
+    </nav>
+
+    <!-- App Layout -->
+    <div class="app-layout">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>Quick Filters</h3>
+                <ul class="sidebar-nav">
+                    <li>
+                        <button onclick="filters.status='';filters.priority='';$('#filter-status').value='';$('#filter-priority').value='';loadTasks();" class="active">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                            All Tasks
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="filters.status='in_progress';loadTasks();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                            In Progress
+                        </button>
+                    </li>
+                    <li>
+                        <button onclick="filters.status='done';loadTasks();">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><path d="M22 4L12 14.01l-3-3"/></svg>
+                            Completed
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-section">
+                <h3>Categories</h3>
+                <ul id="category-list" class="sidebar-nav">
+                    <!-- Rendered by JS -->
+                </ul>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- Stats Row -->
+            <div class="stats-grid">
+                <div class="stat-card accent-primary">
+                    <span class="stat-label">Total Tasks</span>
+                    <span id="stat-total" class="stat-value">0</span>
+                </div>
+                <div class="stat-card accent-warning">
+                    <span class="stat-label">In Progress</span>
+                    <span id="stat-in-progress" class="stat-value">0</span>
+                </div>
+                <div class="stat-card accent-success">
+                    <span class="stat-label">Completed</span>
+                    <span id="stat-done" class="stat-value">0</span>
+                </div>
+                <div class="stat-card accent-danger">
+                    <span class="stat-label">Overdue</span>
+                    <span id="stat-overdue" class="stat-value">0</span>
+                </div>
+            </div>
+
+            <!-- Header + Create Button -->
+            <div class="main-header">
+                <h2>My Tasks</h2>
+                <button class="btn btn-primary" onclick="openCreateModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+                    New Task
+                </button>
+            </div>
+
+            <!-- Toolbar: Search + Filters -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                    <input id="search-input" type="text" class="form-control" placeholder="Search tasks...">
+                </div>
+                <select id="filter-status" class="form-control" style="width:auto;">
+                    <option value="">All Statuses</option>
+                    <option value="todo">To Do</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="done">Done</option>
+                </select>
+                <select id="filter-priority" class="form-control" style="width:auto;">
+                    <option value="">All Priorities</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                </select>
+            </div>
+
+            <!-- Task List -->
+            <div id="task-list" class="task-list">
+                <!-- Rendered by JS -->
+            </div>
+
+        </main>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════
+     CREATE / EDIT TASK MODAL
+     ═══════════════════════════════════════════════════════════ -->
+<div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+        <h2 id="modal-title">New Task</h2>
+        <form id="task-form">
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" class="form-control" placeholder="What needs to be done?" required>
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea name="description" class="form-control" placeholder="Add more details (optional)"></textarea>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                <div class="form-group">
+                    <label>Priority</label>
+                    <select name="priority" class="form-control">
+                        <option value="low">Low</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="high">High</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select name="status" class="form-control">
+                        <option value="todo">To Do</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="done">Done</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category_id" class="form-control category-select">
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" name="due_date" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Task</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<!-- Toast Container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
